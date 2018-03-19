@@ -32,4 +32,23 @@ p2 <- ggplot(all[!is.na(all$Survived), ], aes(x = Sex, fill = Survived)) +
   geom_label(stat = "count", aes(label = ..count..))
 grid.arrange(p1, p2, nrow = 1)
 
+###3.4.3 Passenger Class
+p3 <- ggplot(all, aes(x = Pclass, fill = Pclass)) + geom_bar(stat = "count", position = "dodge") +
+  labs(x = "Pclass, All data") + geom_label(stat = "count", aes(label = ..count..)) +
+  theme(legend.position = "none") + theme_grey()
+p4 <- ggplot(all[!is.na(all$Survived), ], aes(x = Pclass, fill = Survived)) + geom_bar(stat = "count", position = "dodge") +
+labs(x = "Training data only") + theme(legend.position = "none") + theme_grey()
+p5 <- ggplot(all[!is.na(all$Survived), ], aes(x = Pclass, fill = Survived)) + geom_bar(stat = "count", position = "stack") +
+  labs(x = "Training data only", y = "Count") + facet_grid(.~Sex) + theme(legend.position = "none") + theme_gray()
+p6 <- ggplot(all[!is.na(all$Survived), ], aes(x = Pclass, fill = Survived)) + geom_bar(stat = "count", position = "fill") +
+  labs(x = "Training data only", y = "Percent") + facet_grid(.~Sex) + theme(legend.position = "none") + theme_gray()
+grid.arrange(p3, p4, p5, p6, ncol = 2)
+all$Pclass[all$Pclass == "1" & all$Sex == "male"] <- "P1Male"
+all$PclassSex[all$Pclass == "1" & all$Sex == "male"] <- "P1Male"
+all$PclassSex[all$Pclass == "2" & all$Sex == "male"] <- "P2Male"
+all$PclassSex[all$Pclass == "3" & all$Sex == "male"] <- "P3Male"
+all$PclassSex[all$Pclass == "1" & all$Sex == "female"] <- "P1Female"
+all$PclassSex[all$Pclass == "2" & all$Sex == "female"] <- "P2Female"
+all$PclassSex[all$Pclass == "3" & all$Sex == "female"] <- "P3Female"
+all$PclassSex <- as.factor(all$PclassSex)
 
