@@ -72,3 +72,22 @@ kable(table(all$Sex, all$Title))
 ggplot(all[!is.na(all$Survived), ], aes(x = Title, fill = Survived)) +
   geom_bar(stat = "count", position = "stack") +
   labs(x = "Title") + theme_grey()
+
+###4.2 Finding groups of people traveling together
+##4.2.1 Families; siblings, spouses, parents and children
+#creating family size variable (Fsize)
+all$Fsize <- all$SibSp + all$Parch + 1
+ggplot(all[!is.na(all$Survived), ], aes(x = Fsize, fill = Survived)) +
+  geom_bar(stat = "count", position = "dodge") +
+  scale_x_continuous(breaks = c(1:11)) +
+  labs(x = "Family Size") + theme_grey()
+
+
+#4.2.2 Family Size inconsistencies, and correcting the effects of a cancellation
+#composing variable that combines total Fsize and Surname
+all$FsizeName <- paste(as.character(all$Fsize), all$Surname, sep = "")
+SizeCheck <- all %>% group_by(FsizeName, Fsize) %>% summarise(NumObs = n())
+SizeCheck$NumFam <- SizeCheck$NumObs / SizeCheck$Fsize
+SizeCheck$modula <- SizeCheck$NumObs %% SizeCheck$Fsize
+SizeCheck <- SizeCheck[SizeCheck$modula != 0, ]
+sum(SizeCheck$NumObs) #Total number of observations with inconsistencies
