@@ -91,3 +91,12 @@ SizeCheck$NumFam <- SizeCheck$NumObs / SizeCheck$Fsize
 SizeCheck$modula <- SizeCheck$NumObs %% SizeCheck$Fsize
 SizeCheck <- SizeCheck[SizeCheck$modula != 0, ]
 sum(SizeCheck$NumObs) #Total number of observations with inconsistencies
+
+> kable(SizeCheck[SizeCheck$FsizeName %in% c("3Davies", "5Hocking", "6Richards", "2Wilkes", "3Richards", "4Hocking"), ]) #only display some inconsistencies that are discussed in the text
+kable(all[all$FsizeName == "3Davies", c(2, 3, 14, 5, 6, 7, 8, 17, 9, 15)])
+all$FsizeName[ca(550, 1222)] <- "2Davies"
+all$FsizeName[c(550, 1222)] <- "2Davies"
+all$SibSp[550] <- 0
+all$Parch[1222] <- 1
+all$Fsize[c(550, 1222)] <- 2
+kable(all[all$FsizeName == "2Davies", c( 2, 3, 14, 5, 6, 7, 8, 17, 9, 15)])
