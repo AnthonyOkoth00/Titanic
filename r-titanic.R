@@ -52,3 +52,23 @@ all$PclassSex[all$Pclass == "2" & all$Sex == "female"] <- "P2Female"
 all$PclassSex[all$Pclass == "3" & all$Sex == "female"] <- "P3Female"
 all$PclassSex <- as.factor(all$PclassSex)
 
+
+# 4 Feature engineering
+#4.1 Creating the Title variable
+#Extracting Title and Surname from Name
+all$Surname <- sapply(all$Name, function(x) {strsplit(x, split = "[,.]")[[1]][1]})
+#correcting some surnames that also include a maiden name
+all$Surname <- sapply(all$Surname, function(x) {strsplit(x, split = "[-]")[[1]][1]})
+all$Title <- sapply(all$Name, function(x) {strsplit(x, split = "[,.]")[[1]][2]})
+all$Title <- sub(" ", "", all$Title) #removing spaces before title
+kable(table(all$Sex, all$Title))
+
+all$Title[all$Title %in% c("Mlle", "Ms")] <- "Miss"
+all$Title[all$Title == "Mme"] <- "Mrs"
+all$Title[!(all$Title %in% c("Master", "Miss", "Mr", "Mrs"))] <- "Rare Title"
+all$Title <- as.factor(all$Title)
+kable(table(all$Sex, all$Title))
+
+ggplot(all[!is.na(all$Survived), ], aes(x = Title, fill = Survived)) +
+  geom_bar(stat = "count", position = "stack") +
+  labs(x = "Title") + theme_grey()
