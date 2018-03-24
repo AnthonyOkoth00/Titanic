@@ -298,3 +298,108 @@ tab3 <- all[(!is.na(all$FarePP)),] %>%
   summarise(MedianFarePP=median(FarePP))
 all <- left_join(all, tab3, by = "Pclass")
 all$FarePP[which(all$FarePP==0)] <- all$MedianFarePP[which(all$FarePP==0)]
+
+ggplot(all, aes(x=FarePP)) +
+  geom_histogram(binwidth = 5, fill='blue') + theme_grey() +
+  scale_x_continuous(breaks= seq(0, 150, by=10))
+
+#Note Hmisc needs to be loaded before dplyr, as the other way around errors occured due to the kernel using the Hmisc summarize function instead of the dplyr summarize function
+all$FareBins <- cut2(all$FarePP, g=5)
+
+ggplot(all[!is.na(all$Survived),], aes(x=FareBins, fill=Survived))+
+  geom_bar(stat='count') + theme_grey() + facet_grid(.~Pclass)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+##Predicting missing Age values
+ggplot(all[(!is.na(all$Survived) & !is.na(all$Age)),], aes(x = Age, fill = Survived)) +
+  geom_density(alpha=0.5, aes(fill=factor(Survived))) + labs(title="Survival density and Age") +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 10)) + theme_grey()
+
+ggplot(all[!is.na(all$Age),], aes(x = Title, y = Age, fill=Pclass )) +
+  geom_boxplot() + scale_y_continuous(breaks = scales::pretty_breaks(n = 10)) + theme_grey()
+
+#predicting Age with Linear Regression
+set.seed(12000)
+AgeLM <- lm(Age ~ Pclass + Sex + SibSp + Parch + Embarked + Title + GroupSize, data=all[!is.na(all$Age),])
+summary(AgeLM)
+all$AgeLM <- predict(AgeLM, all)
+
+par(mfrow=c(1,2))
+hist(all$Age[!is.na(all$Age)], main='Original data, non-missing', xlab='Age', col='green')
+hist(all$AgeLM[is.na(all$Age)], main= 'LM NA predictions', xlab='Age', col='orange', xlim=range(0:80))
+
+#display which passengers are predicted to be children (age<18) with Linear Regression.
+all[(is.na(all$Age) & all$AgeLM <18), c('Sex', 'SibSp', 'Parch', 'Title', 'Pclass', 'Survived', 'AgeLM')]
+
+#imputing Linear Regression predictions for missing Ages
+indexMissingAge <- which(is.na(all$Age))
+indexAgeSurvivedNotNA<- which(!is.na(all$Age) & (!is.na(all$Survived))) #needed in sections 4.6 and 4.7
+all$Age[indexMissingAge] <- all$AgeLM[indexMissingAge]
+
+#replacing NAs with imaginary Deck U, and keeping only the first letter of ech Cabin (=Deck)
+all$Cabin[is.na(all$Cabin)] <- "U"
+all$Cabin <- substring(all$Cabin, 1, 1)
+all$Cabin <- as.factor(all$Cabin)
+
+ggplot(all[(!is.na(all$Survived)& all$Cabin!='U'),], aes(x=Cabin, fill=Survived)) +
+  geom_bar(stat='count') + theme_grey() + facet_grid(.~Pclass) + labs(title="Survivor split by class and Cabin")
+
+c1 <- round(prop.table(table(all$Survived[(!is.na(all$Survived)&all$Cabin!='U')], all$Cabin[(!is.na(all$Survived)&all$Cabin!='U')]),2)*100)
+kable(c1)
+
+###4.6 How to deal with Children in the model?
+ggplot(all[all$Age<14.5 & !is.na(all$Survived),], aes(x=Pclass, fill=Survived))+
+  geom_bar(stat='count') + theme_grey(base_size = 18)
+
+all$IsChildP12 <- 'No'
+all$IsChildP12[all$Age<=14.5 & all$Pclass %in% c('1', '2')] <- 'Yes'
+all$IsChildP12 <- as.factor(all$IsChildP12)
+
+
+###4.7 What does Embarked tell us?
+d1 <- ggplot(all[!is.na(all$Survived),], aes(x = Embarked, fill = Survived)) +
+  geom_bar(stat='count') + theme_grey() + labs(x = 'Embarked', y= 'Count')
+d2 <- ggplot(all[!is.na(all$Survived),], aes(x = Embarked, fill = Survived)) +
+  geom_bar(stat='count', position= 'fill') + theme_grey() + labs(x = 'Embarked', y= 'Percent')
+
+grid.arrange(d1, d2, nrow=1)
+
+ggplot(all[indexAgeSurvivedNotNA,], aes(x = Age, fill = Survived)) +
+  geom_histogram(aes(fill=factor(Survived))) + labs(title="Survival density, known-ages, and Embarked") +
+  scale_x_continuous(breaks = scales::pretty_breaks(n = 5)) + theme_grey() + facet_grid(.~Embarked)
+
+tab1 <- rbind(table(all$Embarked[!is.na(all$Survived)]),table(all$Embarked[indexAgeSurvivedNotNA]))
+tab1 <- cbind(tab1, (rowSums(tab1)))
+tab1 <- rbind(tab1, tab1[1,]-tab1[2,])
+tab1 <- rbind(tab1, round((tab1[3,]/tab1[1,])*100))
+rownames(tab1) <- c("All", "With Age", "Missing Age", "Percent Missing")
+colnames(tab1) <- c("C", "Q", "S", "Total")
+kable(tab1)
+
+###4.8 Ticket survivors
+
+TicketSurvivors <- all %>%
+  group_by(Ticket) %>%
+  summarize(Tsize = length(Survived),
+            NumNA = sum(is.na(Survived)),
+            SumSurvived = sum(as.numeric(Survived)-1, na.rm=T))
+all <- left_join(all, TicketSurvivors)
+## Joining, by = c("Ticket", "Tsize")
+all$AnySurvivors[all$Tsize==1] <- 'other'
+all$AnySurvivors[all$Tsize>=2] <- ifelse(all$SumSurvived[all$Tsize>=2]>=1, 'survivors in group', 'other')
+all$AnySurvivors <- as.factor(all$AnySurvivors)
+
+kable(x=table(all$AnySurvivors), col.names= c('AnySurvivors', 'Frequency'))
+
+###4.9 Adding an “Is Solo” variable" based on Siblings and Spouse (SibSp) only
+all$IsSolo[all$SibSp==0] <- 'Yes'
+all$IsSolo[all$SibSp!=0] <- 'No'
+all$IsSolo <- as.factor(all$IsSolo)
+
+ggplot(all[!is.na(all$Survived),], aes(x = IsSolo, fill = Survived)) +
+  geom_bar(stat='count') + theme_grey(base_size = 18)
+
+
+
+
+
