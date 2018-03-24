@@ -194,3 +194,39 @@ g2 <- ggplot(all[!is.na(all$Survived),], aes(x = GroupSize, fill = Survived)) +
   labs(x = 'Final Group Categories') + theme_grey() +
   scale_x_discrete (limits = c('solo', 'duo', 'group', 'large group'))
 grid.arrange(g2, g1)
+
+###4.3 Dealing with the Fare variable
+##4.3.1 Which data relevant to fare are missing?
+#display passengers with missing Embarked
+kable(all[which(is.na(all$Embarked)), c("Surname", "Title", "Survived", "Pclass", "Age", "SibSp", "Parch", "Ticket", "Fare", "Cabin", "Embarked", "Group")])
+
+all$FarePP <- all$Fare/all$Tsize ##creating the fare per person variable
+tab2 <- all[(!is.na(all$Embarked) & !is.na(all$Fare)), ] %>% group_by(Embarked, Pclass) %>% summarise(FarePP = median(FarePP))
+kable(tab2)
+
+#imputing missing Embarked values
+ 
+all$Embarked[all$Ticket == "113572"] <- "C"
+#converting Embarked into a factor
+ 
+all$Embarked <- as.factor(all$Embarked)
+#display passengers with missing Fare
+
+kable(all[which(is.na(all$Fare)), c("Surname", "Title", "Survived", "Pclass", "Age", "SibSp", "Parch", "Ticket", "Fare", "Cabin", "Embarked", "Group")])
+
+#imputing FarePP (as the Fare will be dropped later on anyway)
+
+all$FarePP[1044] <- 7.8
+ ##4.3.2 The Fare Per Person Variable
+
+tab3 <- all[(!is.na(all$FarePP)), ] %>% group_by(Pclass) %>% summarise(MedianFarePP = median(FarePP))
+all <- left_join(all, tab3, by = "Pclass")
+all$FarePP[which(all$FarePP == 0)] <- all$MedianFarePP[which(all$FarePP == 0)]
+ggplot(all, aes(x=FarePP)) +
+  geom_histogram(binwidth = 5, fill='blue') + theme_grey() +
+  scale_x_continuous(breaks= seq(0, 150, by=10))
+#Note Hmisc needs to be loaded before dplyr, as the other way around errors occured due to the kernel using the Hmisc summarize function instead of the dplyr summarize function
+all$FareBins <- cut2(all$FarePP, g = 5)
+ggplot(all[!is.na(all$Survived),], aes(x=FareBins, fill=Survived))+
+  geom_bar(stat='count') + theme_grey() + facet_grid(.~Pclass)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
