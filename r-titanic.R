@@ -163,3 +163,34 @@ kable(rest1[1:12, ])
 #replacing Fsize size in my overall dataframe with the count numbers in the table above
 all <- left_join(all, rest1)
 for (i in 1:nrow(all)) { if (!is.na(all$count[i])) { all$Fsize[i] <- all$count[i]}}
+
+
+####4.2.4 Can we still find more second degree families?
+###4.2.5 Did people book together?
+kable(all[all$Ticket == "1601", c("Survived", "Pclass", "Title", "Surname", "Age", "Ticket", "SibSp", "Parch", "Fsize")])
+
+#composing data frame with group size for each Ticket
+TicketGroup <- all %>% select(Ticket) %>% group_by(Ticket) %>% summarise(Tsize = n())
+all <- left_join(all, TicketGroup, by = "Ticket")
+ggplot(all[!is.na(all$Survived), ], aes(x = Tsize, fill = Survived)) + geom_bar(stat = "count", position = "dodge") + scale_x_continuous(breaks = c(1:11)) + labs(x = "Ticket Size") + theme_grey()
+#taking the max of family and ticket size as the group size
+all$Group <- all$Fsize
+for (i in 1:nrow(all)) {
+    all$Group[i] <- max(all$Group[i], all$Tsize)
+  }
+#Creating final group categories
+all$GroupSize[all$Group == 1] <- "solo"
+all$GroupSize[all$Group == 2] <- "duo"
+all$GroupSize[all$Group == 3 & all$Group <= 4] <- "group"
+all$GroupSize[all$Group >= 5] <- "large group"
+all$GroupSize <- as.factor(all$GroupSize)
+
+g1 <- ggplot(all[!is.na(all$Survived),], aes(x = Group, fill = Survived)) +
+  geom_bar(stat='count', position='dodge') +
+  scale_x_continuous(breaks=c(1:11)) +
+  labs(x = 'Final Group Sizes') + theme_grey()
+g2 <- ggplot(all[!is.na(all$Survived),], aes(x = GroupSize, fill = Survived)) +
+  geom_bar(stat='count', position='dodge') +
+  labs(x = 'Final Group Categories') + theme_grey() +
+  scale_x_discrete (limits = c('solo', 'duo', 'group', 'large group'))
+grid.arrange(g2, g1)
