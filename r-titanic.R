@@ -84,149 +84,217 @@ ggplot(all[!is.na(all$Survived), ], aes(x = Fsize, fill = Survived)) +
 
 
 #4.2.2 Family Size inconsistencies, and correcting the effects of a cancellation
-#composing variable that combines total Fsize and Surname
-all$FsizeName <- paste(as.character(all$Fsize), all$Surname, sep = "")
-SizeCheck <- all %>% group_by(FsizeName, Fsize) %>% summarise(NumObs = n())
-SizeCheck$NumFam <- SizeCheck$NumObs / SizeCheck$Fsize
-SizeCheck$modula <- SizeCheck$NumObs %% SizeCheck$Fsize
-SizeCheck <- SizeCheck[SizeCheck$modula != 0, ]
-sum(SizeCheck$NumObs) #Total number of observations with inconsistencies
+all$FsizeName <- paste(as.character(all$Fsize), all$Surname, sep="")
 
-> kable(SizeCheck[SizeCheck$FsizeName %in% c("3Davies", "5Hocking", "6Richards", "2Wilkes", "3Richards", "4Hocking"), ]) #only display some inconsistencies that are discussed in the text
-kable(all[all$FsizeName == "3Davies", c(2, 3, 14, 5, 6, 7, 8, 17, 9, 15)])
-all$FsizeName[ca(550, 1222)] <- "2Davies"
-all$FsizeName[c(550, 1222)] <- "2Davies"
+SizeCheck <- all %>%
+  group_by(FsizeName, Fsize) %>%
+  summarise(NumObs=n())
+SizeCheck$NumFam <- SizeCheck$NumObs/SizeCheck$Fsize
+SizeCheck$modulo <- SizeCheck$NumObs %% SizeCheck$Fsize
+SizeCheck <- SizeCheck[SizeCheck$modulo !=0,]
+sum(SizeCheck$NumObs) #total number of Observations with inconsistencies
+kable(SizeCheck[SizeCheck$FsizeName %in% c('3Davies', '5Hocking', '6Richards', '2Wilkes', '3Richards', '4Hocking'),]) #only display some inconsistencies that are discussed in the text
+
+kable(all[all$FsizeName=='3Davies',c(2,3,14,5,6,7,8,17,9,15)])
+all$FsizeName[c(550, 1222)] <- '2Davies'
 all$SibSp[550] <- 0
 all$Parch[1222] <- 1
 all$Fsize[c(550, 1222)] <- 2
-kable(all[all$FsizeName == "2Davies", c( 2, 3, 14, 5, 6, 7, 8, 17, 9, 15)])
+kable(all[all$FsizeName=='2Davies',c(2,3,14,5,6,7,8,17,9,15)])
 
 ##4.2.3 Families; what about uncles, aunts, cousins, nieces, grandparents, brothers/sisters-in law?
-kable(all[all$Ticket %in% c("29104", "29105", "29106"), c(2, 3, 4, 5, 6, 7, 8, 9, 15)])
-NC <- all[all$FsizeName %in% SizeCheck$FsizeName, ] #create data frame with only relevant Fsizenames
+kable(all[all$Ticket %in% c('29104', '29105', '29106'),c(2,3,4,5,6,7,8,9,15)])
+
+NC <- all[all$FsizeName %in% SizeCheck$FsizeName,] #create data frame with only relevant Fsizenames
 #extracting maiden names
-NC$Name <- sub("\\s$", "", NC$Name) #removing spaces at the end of Name
-NC$Maiden <- sub(".*[^\\)]$", "", NC$Name) #remove when not ending with ")"
+NC$Name <- sub("\\s$", "", NC$Name) #removing spaces at end Name
+NC$Maiden <- sub(".*[^\\)]$", "", NC$Name) #remove when not ending with ')'
 NC$Maiden <- sub(".*\\s(.*)\\)$", "\\1", NC$Maiden)
-NC$Maiden[NC$Title != "Mrs"] <- "" #cleaning up other stuff between brackets 8sometimes nichmae of a Mr.)
+NC$Maiden[NC$Title!='Mrs'] <- "" #cleaning up other stuff between brackets (including Nickname of a Mr)
 NC$Maiden <- sub("^\\(", '', NC$Maiden) #removing opening brackets (sometimes single name, no spaces between brackets)
-# making an exceptions match
-NC$Maiden[NC$Name == "Andersen-Jensen, Miss. Carla Christine Nielsine"] <- "Jensen"
+#making an exceptions match
+NC$Maiden[NC$Name=='Andersen-Jensen, Miss. Carla Christine Nielsine'] <- 'Jensen'
+
 #take only Maiden names that also exist as surname in other Observations
-NC$Maiden2[NC$Maiden %in% NC$Surname] <- NC$Maiden[NC$Maiden %in% NC$Surname]
+NC$Maiden2[NC$Maiden %in% NC$Surname] <- NC$Maiden[NC$Maiden %in% NC$Surname] 
 #create surname+maiden name combinations
 NC$Combi[!is.na(NC$Maiden2)] <- paste(NC$Surname[!is.na(NC$Maiden2)], NC$Maiden[!is.na(NC$Maiden2)])
+
 #create labels dataframe with surname and maiden merged into one column
-labels1 <- NC[!is.na(NC$Combi), c("Surname", "Combi")]
-labels2 <- NC[!is.na(NC$Combi), c("Maiden", "Combi")]
-colnames(labels2) <- c("Surname", "Combi")
+labels1 <- NC[!is.na(NC$Combi), c('Surname','Combi')]
+labels2 <- NC[!is.na(NC$Combi), c('Maiden','Combi')]
+colnames(labels2) <- c('Surname', 'Combi')
 labels1 <- rbind(labels1, labels2)
+
 NC$Combi <- NULL
-NC <- left_join(NC, labels1, by = "Surname")
+NC <- left_join(NC, labels1, by='Surname')
+
 #Find the maximum Fsize within each newly found 'second degree' family
-CombiMaxF <- NC[!is.na(NC$Combi), ] %>% group_by(Combi) %>% summarise(MaxF = max(Fsize))
+CombiMaxF <- NC[!is.na(NC$Combi),] %>%
+  group_by(Combi) %>%
+  summarise(MaxF=max(Fsize)) #summarise(MaxF=n())
 NC <- left_join(NC, CombiMaxF, by = "Combi")
+
 #create family names for those larger families
-NC$FsizeCombi[!is.na(NC$Combi)] <- paste(as.character(NC$Fsize[!is.na(NC$Combi)]), NC$Combi[!is.na(NC$Combi)], sep = "")
+NC$FsizeCombi[!is.na(NC$Combi)] <- paste(as.character(NC$Fsize[!is.na(NC$Combi)]), NC$Combi[!is.na(NC$Combi)], sep="")
+
 #find the ones in which not all Fsizes are the same
-FamMaid <- NC[!is.na(NC$FsizeCombi), ] %>% group_by(FsizeCombi, MaxF, Fsize) %>% summarise(NumObs = n())
-FamMaidWrong <- FamMaid[FamMaid$MaxF != FamMaid$NumObs, ]
-kable(unique(NC[!is.na(NC$Combi) & NC$FsizeCombi %in% FamMaidWrong$FsizeCombi, c("Combi", "MaxF")]))
-NC$MaxF <- NULL #erasing MaxF column maiden combis's
+FamMaid <- NC[!is.na(NC$FsizeCombi),] %>%
+  group_by(FsizeCombi, MaxF, Fsize) %>%
+  summarise(NumObs=n())
+FamMaidWrong <- FamMaid[FamMaid$MaxF!=FamMaid$NumObs,]
+
+kable(unique(NC[!is.na(NC$Combi) & NC$FsizeCombi %in% FamMaidWrong$FsizeCombi, c('Combi', 'MaxF')]))
+
+NC$MaxF <- NULL #erasing MaxF column maiden combi's
+
 #Find the maximum Fsize within remaining families (no maiden combi's)
-FamMale <- NC[is.na(NC$Combi), ] %>% group_by(Surname) %>% summarise(MaxF = max(Fsize))
+FamMale <- NC[is.na(NC$Combi),] %>%
+  group_by(Surname) %>%
+  summarise(MaxF=max(Fsize))
 NC <- left_join(NC, FamMale, by = "Surname")
-NCMale <- NC[is.na(NC$Combi), ] %>% group_by(Surname, FsizeName, MaxF) %>% summarise(count = n()) %>% group_by(Surname, MaxF) %>% filter(n() > 1) %>% summarise(NumFsizes = n())
+
+NCMale <- NC[is.na(NC$Combi),] %>%
+  group_by(Surname, FsizeName, MaxF) %>%
+  summarise(count=n()) %>%
+  group_by(Surname, MaxF) %>%
+  filter(n()>1) %>%
+  summarise(NumFsizes=n())
+
 NC$Combi[NC$Surname %in% NCMale$Surname] <- NC$Surname[NC$Surname %in% NCMale$Surname]
-kable(NCMale[, c(1, 2)])
+
+kable(NCMale[, c(1,2)])
+
+kable(all[all$Surname=='Vander Planke', c(2,3,4,5,6,7,8,9,15)])
+
+
 #selecting those 37 passengers In Not Correct dataframe
-NC <- NC[(NC$FsizeCombi %in% FamMaidWrong$FsizeCombi) | (NC$Surname %in% NCMale$Surname), ]
+NC <- NC[(NC$FsizeCombi %in% FamMaidWrong$FsizeCombi)|(NC$Surname %in% NCMale$Surname),]
+
 #calculating the average Fsize for those 9 families
-NC1 <- NC %>% group_by(Combi) %>% summarise(Favg = mean(Fsize))
+NC1 <- NC %>%
+  group_by(Combi) %>%
+  summarise(Favg=mean(Fsize))
 kable(NC1)
-NC <- left_join(NC, NC1, by = "Combi") #adding Favg to NC dataframe
+
+NC <- left_join(NC, NC1, by = "Combi") #adding Favg to NC dataframe 
 NC$Favg <- round(NC$Favg) #rounding those averages to integers
-NC <- NC[, c("PassengerId", "Favg")]
-all <- left_join(all, NC, by = "PassengerId")
+NC <- NC[, c('PassengerId', 'Favg')]
+all <- left_join(all, NC, by='PassengerId')
+
 #replacing Fsize by Favg
 all$Fsize[!is.na(all$Favg)] <- all$Favg[!is.na(all$Favg)]
+
 ###4.2.4 Can we still find more second degree families?
 #creating a variable with almost the same ticket numbers (only last 2 digits varying)
 all$Ticket2 <- sub("..$", "xx", all$Ticket)
-rest <- all %>% select(PassengerId, Title, Age, Ticket, Ticket2, Surname, Fsize) %>% filter(Fsize == "1") %>% group_by(Ticket2, Surname) %>% summarise(count = n())
-rest <- rest[rest$count > 1, ]
-rest1 <- all[(all$Ticket2 %in% rest$Ticket2 & all$Surname %in% rest$Surname & all$Fsize == "1"), c("PassengerId", "Surname", "Title", "Age", "Ticket", "Ticket2", "Fsize", "SibSp", "Parch")]
+rest <- all %>%
+  select(PassengerId, Title, Age, Ticket, Ticket2, Surname, Fsize) %>%
+  filter(Fsize=='1') %>%
+  group_by(Ticket2, Surname) %>%
+  summarise(count=n())
+rest <- rest[rest$count>1,]
+rest1 <- all[(all$Ticket2 %in% rest$Ticket2 & all$Surname %in% rest$Surname & all$Fsize=='1'), c('PassengerId', 'Surname', 'Title', 'Age', 'Ticket', 'Ticket2', 'Fsize', 'SibSp', 'Parch')]
 rest1 <- left_join(rest1, rest, by = c("Surname", "Ticket2"))
-rest1 <- rest1[!is.na(rest1$count), ]
-rest1 <- rest1 %>% arrange(Surname, Ticket2) 
-kable(rest1[1:12, ])
+rest1 <- rest1[!is.na(rest1$count),]
+rest1 <- rest1 %>%
+  arrange(Surname, Ticket2)
+kable(rest1[1:12,])
+
 #replacing Fsize size in my overall dataframe with the count numbers in the table above
 all <- left_join(all, rest1)
-for (i in 1:nrow(all)) { if (!is.na(all$count[i])) { all$Fsize[i] <- all$count[i]}}
+for (i in 1:nrow(all)){
+  if (!is.na(all$count[i])){
+    all$Fsize[i] <- all$count[i]
+  }
+}
 
 
 ####4.2.4 Can we still find more second degree families?
 ###4.2.5 Did people book together?
-kable(all[all$Ticket == "1601", c("Survived", "Pclass", "Title", "Surname", "Age", "Ticket", "SibSp", "Parch", "Fsize")])
+kable(all[all$Ticket=='1601', c('Survived', 'Pclass', 'Title', 'Surname', 'Age', 'Ticket', 'SibSp', 'Parch', 'Fsize')])
 
 #composing data frame with group size for each Ticket
-TicketGroup <- all %>% select(Ticket) %>% group_by(Ticket) %>% summarise(Tsize = n())
+#composing data frame with group size for each Ticket
+TicketGroup <- all %>%
+  select(Ticket) %>%
+  group_by(Ticket) %>%
+  summarise(Tsize=n())
 all <- left_join(all, TicketGroup, by = "Ticket")
-ggplot(all[!is.na(all$Survived), ], aes(x = Tsize, fill = Survived)) + geom_bar(stat = "count", position = "dodge") + scale_x_continuous(breaks = c(1:11)) + labs(x = "Ticket Size") + theme_grey()
+
+ggplot(all[!is.na(all$Survived),], aes(x = Tsize, fill = Survived)) +
+  geom_bar(stat='count', position='dodge') +
+  scale_x_continuous(breaks=c(1:11)) +
+  labs(x = 'Ticket Size') + theme_grey()
+
 #taking the max of family and ticket size as the group size
 all$Group <- all$Fsize
-for (i in 1:nrow(all)) {
-    all$Group[i] <- max(all$Group[i], all$Tsize)
-  }
+for (i in 1:nrow(all)){
+  all$Group[i] <- max(all$Group[i], all$Tsize[i])
+}
+
 #Creating final group categories
-all$GroupSize[all$Group == 1] <- "solo"
-all$GroupSize[all$Group == 2] <- "duo"
-all$GroupSize[all$Group == 3 & all$Group <= 4] <- "group"
-all$GroupSize[all$Group >= 5] <- "large group"
+all$GroupSize[all$Group==1] <- 'solo'
+all$GroupSize[all$Group==2] <- 'duo'
+all$GroupSize[all$Group>=3 & all$Group<=4] <- 'group'
+all$GroupSize[all$Group>=5] <- 'large group'
 all$GroupSize <- as.factor(all$GroupSize)
 
 g1 <- ggplot(all[!is.na(all$Survived),], aes(x = Group, fill = Survived)) +
   geom_bar(stat='count', position='dodge') +
   scale_x_continuous(breaks=c(1:11)) +
   labs(x = 'Final Group Sizes') + theme_grey()
+
 g2 <- ggplot(all[!is.na(all$Survived),], aes(x = GroupSize, fill = Survived)) +
   geom_bar(stat='count', position='dodge') +
   labs(x = 'Final Group Categories') + theme_grey() +
   scale_x_discrete (limits = c('solo', 'duo', 'group', 'large group'))
 grid.arrange(g2, g1)
 
-###4.3 Dealing with the Fare variable
-##4.3.1 Which data relevant to fare are missing?
+
+#clean up
+all$count <- NULL
+all$Name <- NULL
+rm(CombiMaxF)
+rm(FamMaid)
+rm(FamMaidWrong)
+rm(FamMale)
+rm(labels1)
+rm(labels2)
+rm(NC)
+rm(NC1)
+rm(NCMale)
+rm(rest)
+#rm(rest1)
+rm(SizeCheck)
+rm(TicketGroup)
+rm(p1); rm(p2); rm(p3); rm(p4); rm(p5); rm(p6)
+
+##Dealing with the Fare variable
+
+###Which data relevant to fare are missing?
 #display passengers with missing Embarked
-kable(all[which(is.na(all$Embarked)), c("Surname", "Title", "Survived", "Pclass", "Age", "SibSp", "Parch", "Ticket", "Fare", "Cabin", "Embarked", "Group")])
+kable(all[which(is.na(all$Embarked)),c('Surname', 'Title', 'Survived', 'Pclass', 'Age', 'SibSp', 'Parch', 'Ticket', 'Fare', 'Cabin', 'Embarked', 'Group') ])
+all$FarePP <- all$Fare/all$Tsize #creating the Fare Per Person variable
 
-all$FarePP <- all$Fare/all$Tsize ##creating the fare per person variable
-tab2 <- all[(!is.na(all$Embarked) & !is.na(all$Fare)), ] %>% group_by(Embarked, Pclass) %>% summarise(FarePP = median(FarePP))
+tab2 <- all[(!is.na(all$Embarked) & !is.na(all$Fare)),] %>%
+  group_by(Embarked, Pclass) %>%
+  summarise(FarePP=median(FarePP))
 kable(tab2)
-
 #imputing missing Embarked values
- 
-all$Embarked[all$Ticket == "113572"] <- "C"
+all$Embarked[all$Ticket=='113572'] <- 'C'
 #converting Embarked into a factor
- 
 all$Embarked <- as.factor(all$Embarked)
+
 #display passengers with missing Fare
-
-kable(all[which(is.na(all$Fare)), c("Surname", "Title", "Survived", "Pclass", "Age", "SibSp", "Parch", "Ticket", "Fare", "Cabin", "Embarked", "Group")])
-
-#imputing FarePP (as the Fare will be dropped later on anyway)
+kable(all[which(is.na(all$Fare)), c('Surname', 'Title', 'Survived', 'Pclass', 'Age', 'SibSp', 'Parch', 'Ticket', 'Fare', 'Cabin', 'Embarked', 'Group')])
 
 all$FarePP[1044] <- 7.8
- ##4.3.2 The Fare Per Person Variable
 
-tab3 <- all[(!is.na(all$FarePP)), ] %>% group_by(Pclass) %>% summarise(MedianFarePP = median(FarePP))
+###The Fare Per Person Variable
+
+tab3 <- all[(!is.na(all$FarePP)),] %>%
+  group_by(Pclass) %>%
+  summarise(MedianFarePP=median(FarePP))
 all <- left_join(all, tab3, by = "Pclass")
-all$FarePP[which(all$FarePP == 0)] <- all$MedianFarePP[which(all$FarePP == 0)]
-ggplot(all, aes(x=FarePP)) +
-  geom_histogram(binwidth = 5, fill='blue') + theme_grey() +
-  scale_x_continuous(breaks= seq(0, 150, by=10))
-#Note Hmisc needs to be loaded before dplyr, as the other way around errors occured due to the kernel using the Hmisc summarize function instead of the dplyr summarize function
-all$FareBins <- cut2(all$FarePP, g = 5)
-ggplot(all[!is.na(all$Survived),], aes(x=FareBins, fill=Survived))+
-  geom_bar(stat='count') + theme_grey() + facet_grid(.~Pclass)+
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+all$FarePP[which(all$FarePP==0)] <- all$MedianFarePP[which(all$FarePP==0)]
