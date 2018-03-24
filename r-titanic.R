@@ -100,3 +100,66 @@ all$SibSp[550] <- 0
 all$Parch[1222] <- 1
 all$Fsize[c(550, 1222)] <- 2
 kable(all[all$FsizeName == "2Davies", c( 2, 3, 14, 5, 6, 7, 8, 17, 9, 15)])
+
+##4.2.3 Families; what about uncles, aunts, cousins, nieces, grandparents, brothers/sisters-in law?
+kable(all[all$Ticket %in% c("29104", "29105", "29106"), c(2, 3, 4, 5, 6, 7, 8, 9, 15)])
+NC <- all[all$FsizeName %in% SizeCheck$FsizeName, ] #create data frame with only relevant Fsizenames
+#extracting maiden names
+NC$Name <- sub("\\s$", "", NC$Name) #removing spaces at the end of Name
+NC$Maiden <- sub(".*[^\\)]$", "", NC$Name) #remove when not ending with ")"
+NC$Maiden <- sub(".*\\s(.*)\\)$", "\\1", NC$Maiden)
+NC$Maiden[NC$Title != "Mrs"] <- "" #cleaning up other stuff between brackets 8sometimes nichmae of a Mr.)
+NC$Maiden <- sub("^\\(", '', NC$Maiden) #removing opening brackets (sometimes single name, no spaces between brackets)
+# making an exceptions match
+NC$Maiden[NC$Name == "Andersen-Jensen, Miss. Carla Christine Nielsine"] <- "Jensen"
+#take only Maiden names that also exist as surname in other Observations
+NC$Maiden2[NC$Maiden %in% NC$Surname] <- NC$Maiden[NC$Maiden %in% NC$Surname]
+#create surname+maiden name combinations
+NC$Combi[!is.na(NC$Maiden2)] <- paste(NC$Surname[!is.na(NC$Maiden2)], NC$Maiden[!is.na(NC$Maiden2)])
+#create labels dataframe with surname and maiden merged into one column
+labels1 <- NC[!is.na(NC$Combi), c("Surname", "Combi")]
+labels2 <- NC[!is.na(NC$Combi), c("Maiden", "Combi")]
+colnames(labels2) <- c("Surname", "Combi")
+labels1 <- rbind(labels1, labels2)
+NC$Combi <- NULL
+NC <- left_join(NC, labels1, by = "Surname")
+#Find the maximum Fsize within each newly found 'second degree' family
+CombiMaxF <- NC[!is.na(NC$Combi), ] %>% group_by(Combi) %>% summarise(MaxF = max(Fsize))
+NC <- left_join(NC, CombiMaxF, by = "Combi")
+#create family names for those larger families
+NC$FsizeCombi[!is.na(NC$Combi)] <- paste(as.character(NC$Fsize[!is.na(NC$Combi)]), NC$Combi[!is.na(NC$Combi)], sep = "")
+#find the ones in which not all Fsizes are the same
+FamMaid <- NC[!is.na(NC$FsizeCombi), ] %>% group_by(FsizeCombi, MaxF, Fsize) %>% summarise(NumObs = n())
+FamMaidWrong <- FamMaid[FamMaid$MaxF != FamMaid$NumObs, ]
+kable(unique(NC[!is.na(NC$Combi) & NC$FsizeCombi %in% FamMaidWrong$FsizeCombi, c("Combi", "MaxF")]))
+NC$MaxF <- NULL #erasing MaxF column maiden combis's
+#Find the maximum Fsize within remaining families (no maiden combi's)
+FamMale <- NC[is.na(NC$Combi), ] %>% group_by(Surname) %>% summarise(MaxF = max(Fsize))
+NC <- left_join(NC, FamMale, by = "Surname")
+NCMale <- NC[is.na(NC$Combi), ] %>% group_by(Surname, FsizeName, MaxF) %>% summarise(count = n()) %>% group_by(Surname, MaxF) %>% filter(n() > 1) %>% summarise(NumFsizes = n())
+NC$Combi[NC$Surname %in% NCMale$Surname] <- NC$Surname[NC$Surname %in% NCMale$Surname]
+kable(NCMale[, c(1, 2)])
+#selecting those 37 passengers In Not Correct dataframe
+NC <- NC[(NC$FsizeCombi %in% FamMaidWrong$FsizeCombi) | (NC$Surname %in% NCMale$Surname), ]
+#calculating the average Fsize for those 9 families
+NC1 <- NC %>% group_by(Combi) %>% summarise(Favg = mean(Fsize))
+kable(NC1)
+NC <- left_join(NC, NC1, by = "Combi") #adding Favg to NC dataframe
+NC$Favg <- round(NC$Favg) #rounding those averages to integers
+NC <- NC[, c("PassengerId", "Favg")]
+all <- left_join(all, NC, by = "PassengerId")
+#replacing Fsize by Favg
+all$Fsize[!is.na(all$Favg)] <- all$Favg[!is.na(all$Favg)]
+###4.2.4 Can we still find more second degree families?
+#creating a variable with almost the same ticket numbers (only last 2 digits varying)
+all$Ticket2 <- sub("..$", "xx", all$Ticket)
+rest <- all %>% select(PassengerId, Title, Age, Ticket, Ticket2, Surname, Fsize) %>% filter(Fsize == "1") %>% group_by(Ticket2, Surname) %>% summarise(count = n())
+rest <- rest[rest$count > 1, ]
+rest1 <- all[(all$Ticket2 %in% rest$Ticket2 & all$Surname %in% rest$Surname & all$Fsize == "1"), c("PassengerId", "Surname", "Title", "Age", "Ticket", "Ticket2", "Fsize", "SibSp", "Parch")]
+rest1 <- left_join(rest1, rest, by = c("Surname", "Ticket2"))
+rest1 <- rest1[!is.na(rest1$count), ]
+rest1 <- rest1 %>% arrange(Surname, Ticket2) 
+kable(rest1[1:12, ])
+#replacing Fsize size in my overall dataframe with the count numbers in the table above
+all <- left_join(all, rest1)
+for (i in 1:nrow(all)) { if (!is.na(all$count[i])) { all$Fsize[i] <- all$count[i]}}
