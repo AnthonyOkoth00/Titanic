@@ -405,6 +405,11 @@ ggplot(all[!is.na(all$Survived),], aes(x = IsSolo, fill = Survived)) +
 trainClean <- all[!is.na(all$Survived),]
 testClean <- all[is.na(all$Survived),]
 
+###Saving clean data sets
+write.csv(trainClean, file = "./trainClean.csv", row.names = FALSE)
+write.csv(testClean, file = "./testClean.csv", row.names = FALSE)
+
+
 ##5.1 Random Forest model
 #install.packages('e1071', dependencies=TRUE)
 set.seed(2017)

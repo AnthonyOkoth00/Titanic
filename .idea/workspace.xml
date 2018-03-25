@@ -1,13 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6810c241-537c-4dc5-8521-0d71bb941e66" name="Default" comment="">
-      <change beforePath="" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
-      <change beforePath="" afterPath="$PROJECT_DIR$/python-titanic.py" />
-      <change beforePath="$PROJECT_DIR$/.RData" afterPath="$PROJECT_DIR$/.RData" />
-      <change beforePath="$PROJECT_DIR$/.Rhistory" afterPath="$PROJECT_DIR$/.Rhistory" />
-      <change beforePath="$PROJECT_DIR$/r-titanic.R" afterPath="$PROJECT_DIR$/r-titanic.R" />
-    </list>
+    <list default="true" id="6810c241-537c-4dc5-8521-0d71bb941e66" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
