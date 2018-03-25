@@ -400,6 +400,17 @@ ggplot(all[!is.na(all$Survived),], aes(x = IsSolo, fill = Survived)) +
   geom_bar(stat='count') + theme_grey(base_size = 18)
 
 
+###5 Predictions (with caret cross validation)
+#splitting data into train and test set again
+trainClean <- all[!is.na(all$Survived),]
+testClean <- all[is.na(all$Survived),]
+
+##5.1 Random Forest model
+#install.packages('e1071', dependencies=TRUE)
+set.seed(2017)
+caret_matrix <- train(x=trainClean[,c('PclassSex', 'GroupSize', 'FarePP', 'AnySurvivors', 'IsChildP12')], y=trainClean$Survived, data=trainClean, method='rf', trControl=trainControl(method="cv", number=5))
+caret_matrix
+
 
 
 
