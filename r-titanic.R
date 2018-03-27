@@ -438,6 +438,17 @@ testClean$Sum <- testClean$RF + testClean$SVM + testClean$Boost
 testClean$Majority <- ifelse(testClean$Sum <= 1, 0, 1)
 
 
+###5.4.2 Taking predictions from one model, unless the others both disagree
+##The best kernels show that a public score of arround 0.82 - 0.83 is likely to be the max achievable test accuracy.
+##The cross validation score of the SVm model is exactly in this range whereas that of the Rf and GBM are somewhat higher,
+##hinting at overfitting. 
+##Therefore, SVM predictions will be taken, unless both RF and GBM disagree with the SVM prediction
+testClean$DisagreeSVM <- ifelse(testClean$RF == testClean$Boost & testClean$SVM != testClean$RF,
+                                testClean$RF, testClean$SVM)
+
+
+
+
 
 
 
