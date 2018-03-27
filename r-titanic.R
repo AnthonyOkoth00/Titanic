@@ -410,5 +410,16 @@ caret_svm$results
 #using the model to make Survival predictions on the test set
 solution_svm <- predict(caret_svm, testClean)
 
+##5.3 Gradient Boosting Machine (GBM) model
+set.seed(2017)
+caret_boost <- train(Survived~ PclassSex + GroupSize + FareBins + AnySurvivors + IsChildP12, 
+                     data = trainClean, method = "gbm", preProcess = c("center", "scale"), 
+                     trControl = trainControl(method = "cv", number = 7), verbose = FALSE)
+print(caret_boost)
+
+#using the model to make Survival predictions on the test set
+solution_boost <- predict(caret_boost, testClean)
+
+
 
 
