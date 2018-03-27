@@ -446,6 +446,24 @@ testClean$Majority <- ifelse(testClean$Sum <= 1, 0, 1)
 testClean$DisagreeSVM <- ifelse(testClean$RF == testClean$Boost & testClean$SVM != testClean$RF,
                                 testClean$RF, testClean$SVM)
 
+###5.4.3 Selectively combining models for PclassSex combinations
+#predictions of the models on the training set
+trainClean$RF <- predict(caret_matrix, trainClean)
+trainClean$SVM <- predict(caret_svm, trainClean)
+trainClean$Boost <- predict(caret_boost, trainClean)
+
+#selecting SVM prediction, and GMB predictions for P3
+testClean$Select <- ifelse(testClean$Pclass != 3, testClean$SVM, testClean$Boost)
+
+#writing final submission file
+submission_select <- data.frame(PassengerId = test$PassengerId, Survived = testClean$Select)
+submission_majority <- data.frame(PassengerId = test$PassengerId, Survived = testClean$Majority)
+submission_disagreeSVM <- data.frame(PassengerId = test$PassengerId, Survived = testClean$DisagreeSVM)
+
+write.csv(submission_select, file = './Titanic_select.csv', row.names = F)
+write.csv(submission_majority, file = "./Titanic_majority.csv", row.names = F)
+write.csv(submission_disagreeSVM, file = "./Titanic_disagreeSVM.csv", row.names = F)
+
 
 
 
