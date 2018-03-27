@@ -394,10 +394,21 @@ caret_matrix <- train(x = trainClean[, c("PclassSex", "GroupSize", "FarePP", "An
                       y = trainClean$Survived, data = trainClean, method = "rf", trControl = trainControl(
                         method = "cv", number = 5))
 caret_matrix
+caret_matrix$results
+varImpPlot(caret_matrix$finalModel, main = "Variable importance")
+#using the model to make Survival predictions on the test set
+solution_rf <- predict(caret_matrix, testClean)
 
 
-
-
+##5.2 Support Vector Machine (SVM) model
+set.seed(2017)
+caret_svm <- train(Survived~ PclassSex + FarePP + AnySurvivors + IsChildP12 + IsSolo,
+                   data = trainClean, method = "svmRadial", preProcess = c("center", "scale"),
+                   trControl = trainControl(method = "cv", number = 5))
+caret_svm
+caret_svm$results
+#using the model to make Survival predictions on the test set
+solution_svm <- predict(caret_svm, testClean)
 
 
 
