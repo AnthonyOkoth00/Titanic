@@ -43,7 +43,7 @@ p5 <- ggplot(all[!is.na(all$Survived), ], aes(x = Pclass, fill = Survived)) + ge
 p6 <- ggplot(all[!is.na(all$Survived), ], aes(x = Pclass, fill = Survived)) + geom_bar(stat = "count", position = "fill") +
   labs(x = "Training data only", y = "Percent") + facet_grid(.~Sex) + theme(legend.position = "none") + theme_gray()
 grid.arrange(p3, p4, p5, p6, ncol = 2)
-all$Pclass[all$Pclass == "1" & all$Sex == "male"] <- "P1Male"
+all$PclassSex[all$Pclass == "1" & all$Sex == "male"] <- "P1Male"
 all$PclassSex[all$Pclass == "1" & all$Sex == "male"] <- "P1Male"
 all$PclassSex[all$Pclass == "2" & all$Sex == "male"] <- "P2Male"
 all$PclassSex[all$Pclass == "3" & all$Sex == "male"] <- "P3Male"
@@ -252,24 +252,6 @@ g2 <- ggplot(all[!is.na(all$Survived),], aes(x = GroupSize, fill = Survived)) +
 grid.arrange(g2, g1)
 
 
-#clean up
-all$count <- NULL
-all$Name <- NULL
-rm(CombiMaxF)
-rm(FamMaid)
-rm(FamMaidWrong)
-rm(FamMale)
-rm(labels1)
-rm(labels2)
-rm(NC)
-rm(NC1)
-rm(NCMale)
-rm(rest)
-#rm(rest1)
-rm(SizeCheck)
-rm(TicketGroup)
-rm(p1); rm(p2); rm(p3); rm(p4); rm(p5); rm(p6)
-
 ##Dealing with the Fare variable
 
 ###Which data relevant to fare are missing?
@@ -401,20 +383,20 @@ ggplot(all[!is.na(all$Survived),], aes(x = IsSolo, fill = Survived)) +
 
 
 ###5 Predictions (with caret cross validation)
+
 #splitting data into train and test set again
-trainClean <- all[!is.na(all$Survived),]
-testClean <- all[is.na(all$Survived),]
+trainClean <- all[!is.na(all$Survived), ]
+testClean <- all[is.na(all$Survived), ]
 
-###Saving clean data sets
-write.csv(trainClean, file = "./trainClean.csv", row.names = FALSE)
-write.csv(testClean, file = "./testClean.csv", row.names = FALSE)
-
-
-##5.1 Random Forest model
-#install.packages('e1071', dependencies=TRUE)
+###5.1 Random Forest model
 set.seed(2017)
-caret_matrix <- train(x=trainClean[,c('PclassSex', 'GroupSize', 'FarePP', 'AnySurvivors', 'IsChildP12')], y=trainClean$Survived, data=trainClean, method='rf', trControl=trainControl(method="cv", number=5))
+caret_matrix <- train(x = trainClean[, c("PclassSex", "GroupSize", "FarePP", "AnySurvivors", "IsChildP12")],
+                      y = trainClean$Survived, data = trainClean, method = "rf", trControl = trainControl(
+                        method = "cv", number = 5))
 caret_matrix
+
+
+
 
 
 
