@@ -421,5 +421,24 @@ print(caret_boost)
 solution_boost <- predict(caret_boost, testClean)
 
 
+###5.4 Combining models
+##5.4.1 Majority vote ensemble of the three models
+
+##adding model predictions to test dataframe
+testClean$RF <- as.numeric(solution_rf) - 1
+testClean$SVM <- as.numeric(solution_svm) - 1
+testClean$Boost <- as.numeric(solution_boost) - 1
+
+#compose correlations plot
+corrplot.mixed(cor(testClean[, c("RF", "SVM", "Boost")]), order = "hclust", tl.col = "black")
+
+#The idea is this: If 0 or 1 model predicts "Survived", the overall prediction will be "Died".
+# However, if 2 or 3 models predict "Survived", the overall precition will be "Survived".
+testClean$Sum <- testClean$RF + testClean$SVM + testClean$Boost
+testClean$Majority <- ifelse(testClean$Sum <= 1, 0, 1)
+
+
+
+
 
 
