@@ -459,10 +459,19 @@ testClean$Select <- ifelse(testClean$Pclass != 3, testClean$SVM, testClean$Boost
 submission_select <- data.frame(PassengerId = test$PassengerId, Survived = testClean$Select)
 submission_majority <- data.frame(PassengerId = test$PassengerId, Survived = testClean$Majority)
 submission_disagreeSVM <- data.frame(PassengerId = test$PassengerId, Survived = testClean$DisagreeSVM)
+submission_gbm <- data.frame(PassengerId = test$PassengerId, Survived = testClean$Boost)
+submission_svm <- data.frame(PassengerId = test$PassengerId, Survived = testClean$SVM)
+submission_rf <- data.frame(PassengerId = test$PassengerId, Survived = testClean$RF)
+
 
 write.csv(submission_select, file = './Titanic_select.csv', row.names = F)
 write.csv(submission_majority, file = "./Titanic_majority.csv", row.names = F)
 write.csv(submission_disagreeSVM, file = "./Titanic_disagreeSVM.csv", row.names = F)
+write.csv(submission_gbm, file = "./Titanic_gbm.csv", row.names = F)
+write.csv(submission_svm, file = "./Titanic_svm.csv", row.names = F)
+write.csv(submission_rf, file = "./Titanic_rf.csv", row.names = F)
+
+
 
 
 
