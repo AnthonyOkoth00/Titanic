@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="6810c241-537c-4dc5-8521-0d71bb941e66" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/python-titanic.py" afterPath="$PROJECT_DIR$/python-titanic.py" />
-      <change beforePath="$PROJECT_DIR$/r-titanic.R" afterPath="$PROJECT_DIR$/r-titanic.R" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -17,8 +16,8 @@
       <file leaf-file-name="python-titanic.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/python-titanic.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="135">
-              <caret line="9" column="6" lean-forward="false" selection-start-line="9" selection-start-column="6" selection-end-line="9" selection-end-column="6" />
+            <state relative-caret-position="175">
+              <caret line="12" column="15" lean-forward="false" selection-start-line="12" selection-start-column="15" selection-end-line="12" selection-end-column="15" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -46,9 +45,10 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="y" value="138" />
-    <option name="width" value="1906" />
-    <option name="height" value="845" />
+    <option name="x" value="-1920" />
+    <option name="y" value="397" />
+    <option name="width" value="1897" />
+    <option name="height" value="810" />
   </component>
   <component name="ProjectView">
     <navigator currentView="ProjectPane" proportions="" version="1">
@@ -137,13 +137,13 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="138" width="1906" height="845" extended-state="0" />
+    <frame x="-1920" y="397" width="1897" height="810" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24973767" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.2509225" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
-      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.5510996" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.57723576" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
@@ -169,8 +169,8 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/python-titanic.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="135">
-          <caret line="9" column="6" lean-forward="false" selection-start-line="9" selection-start-column="6" selection-end-line="9" selection-end-column="6" />
+        <state relative-caret-position="175">
+          <caret line="12" column="15" lean-forward="false" selection-start-line="12" selection-start-column="15" selection-end-line="12" selection-end-column="15" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
           </folding>
